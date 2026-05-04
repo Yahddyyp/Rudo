@@ -1,0 +1,7 @@
+/target
+debug
+**/*.rs.bk
+*.pdb
+**/mutants.out*/
+rustc-ice-*.txt
+.DS_Store
