@@ -5,8 +5,9 @@ use ratatui::prelude::Stylize;
 use ratatui::prelude::Widget;
 use ratatui::style::Color;
 use ratatui::style::Style;
+use ratatui::symbols::border;
 use ratatui::text::ToSpan;
-use ratatui::widgets::{Block, BorderType, List, ListItem, Padding, Paragraph};
+use ratatui::widgets::{Block, BorderType, List, ListItem, Padding, Paragraph, block};
 
 pub fn render(frame: &mut Frame, app_state: &mut Appstate) {
     if app_state.is_add_new {
@@ -17,23 +18,40 @@ pub fn render(frame: &mut Frame, app_state: &mut Appstate) {
 }
 
 pub fn render_input_from(frame: &mut Frame<'_>, app_state: &mut Appstate) {
-    Paragraph::new(app_state.input_value.as_str())
-        .block(
-            Block::bordered()
-                .title(" Input description ".to_span().into_centered_line())
-                .fg(Color::Rgb(116, 199, 236))
-                .padding(Padding::uniform(1))
-                .border_type(BorderType::Rounded),
-        )
-        .render(frame.area(), frame.buffer_mut());
+    let input_paragraph = Paragraph::new(app_state.input_value.as_str());
+    let border_area = frame.area();
+    let chuncks = Layout::vertical([Constraint::Fill(1)])
+        .margin(1)
+        .split(border_area);
+
+    if chuncks.is_empty() {
+        let error_message = Paragraph::new("No area available to render input block");
+        frame.render_widget(error_message, frame.area());
+        return;
+    }
+
+    let inner_area = chuncks[0];
+
+    let input_block = Block::bordered()
+        .title(" Input description ".to_span().into_centered_line())
+        .fg(Color::Rgb(116, 199, 236))
+        .border_type(BorderType::Rounded);
+    frame.render_widget(input_block, border_area);
+    frame.render_widget(input_paragraph, inner_area);
 }
 
 pub fn render_list(frame: &mut Frame<'_>, app_state: &mut Appstate) {
     let border_area = frame.area();
 
-    let inner_area = Layout::vertical([Constraint::Fill(1)])
+    let chuncks = Layout::vertical([Constraint::Fill(1)])
         .margin(1)
-        .split(border_area)[0];
+        .split(border_area);
+
+    if chuncks.is_empty() {
+        return;
+    }
+
+    let inner_area = chuncks[0];
 
     Block::bordered()
         .border_type(BorderType::Rounded)
