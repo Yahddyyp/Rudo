@@ -8,12 +8,14 @@ use ratatui::{
     crossterm::event::{self, Event},
 };
 
-use crate::app::{Appstate, TodoItem, handle_add_new, handle_key};
+use crate::app::{Appstate, Panel, TodoItem, handle_add_new, handle_key};
 use crate::ui::render;
 
 fn main() -> Result<()> {
     let mut state = Appstate::default();
+    state.cursor_position = 0;
     state.is_add_new = false;
+    state.active_panel = Panel::List;
     color_eyre::install()?;
 
     let terminal = ratatui::init();

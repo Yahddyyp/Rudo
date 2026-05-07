@@ -10,6 +10,20 @@ pub struct Appstate {
     pub list_state: ListState,
     pub is_add_new: bool,
     pub input_value: String,
+    pub cursor_position: usize,
+    pub active_panel: Panel,
+}
+
+#[derive(Debug, PartialEq)]
+pub enum Panel {
+    List,
+    NewList,
+}
+
+impl Default for Panel {
+    fn default() -> Self {
+        Panel::List
+    }
 }
 
 #[derive(Debug, Default)]
@@ -21,10 +35,24 @@ pub struct TodoItem {
 pub fn handle_add_new(key: KeyEvent, app_state: &mut Appstate) -> FormAction {
     match key.code {
         event::KeyCode::Char(c) => {
-            app_state.input_value.push(c);
+            app_state.input_value.insert(app_state.cursor_position, c);
+            app_state.cursor_position += 1;
         }
         event::KeyCode::Backspace => {
-            app_state.input_value.pop();
+            if app_state.cursor_position > 0 {
+                app_state.input_value.remove(app_state.cursor_position - 1);
+                app_state.cursor_position -= 1;
+            }
+        }
+        event::KeyCode::Left => {
+            if app_state.cursor_position > 0 {
+                app_state.cursor_position -= 1;
+            }
+        }
+        event::KeyCode::Right => {
+            if app_state.cursor_position < app_state.input_value.len() {
+                app_state.cursor_position += 1;
+            }
         }
         event::KeyCode::Enter => {
             return crate::actions::FormAction::Submit;
@@ -55,6 +83,8 @@ pub fn handle_key(key: KeyEvent, app_state: &mut Appstate) -> bool {
             }
             'i' => {
                 app_state.is_add_new = true;
+                app_state.input_value.clear();
+                app_state.cursor_position = 0;
             }
             'k' => {
                 app_state.list_state.select_previous();
@@ -67,6 +97,13 @@ pub fn handle_key(key: KeyEvent, app_state: &mut Appstate) -> bool {
             'j' => {
                 app_state.list_state.select_next();
             }
+            '1' => {
+                app_state.active_panel = Panel::List;
+            }
+            '2' => {
+                app_state.active_panel = Panel::NewList;
+            }
+
             _ => {}
         },
         _ => {}
