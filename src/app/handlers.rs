@@ -1,5 +1,4 @@
-use super::super::actions::FormAction;
-use super::state::{Appstate, EditTarget, Panel, TodoItem};
+use super::state::{AppMode, Appstate, EditTarget, FormAction, ItemType, ListType, Panel, TodoItem};
 use ratatui::{
     crossterm::event::{self, KeyEvent},
     widgets::ListState,
@@ -87,59 +86,64 @@ pub fn handle_key(key: KeyEvent, app_state: &mut Appstate) -> bool {
         event::KeyCode::Enter => {
             if app_state.active_panel == Panel::NewList {
                 if let Some(index) = app_state.lists_list_state.selected() {
-                    app_state.current_list_index = index;
-                    app_state.list_state.select(Some(0));
-                    app_state.active_panel = Panel::List;
+                    if let Some(list) = app_state.lists.get(index) {
+                        if list.list_type == ListType::Folder {
+                            app_state.current_folder_id = Some(list.id);
+                            app_state.lists_list_state.select(Some(0));
+                        } else {
+                            app_state.current_list_index = index;
+                            app_state.list_state.select(Some(0));
+                            app_state.active_panel = Panel::List;
+                        }
+                    }
                 }
-            } else {
-                if let Some(visual_idx) = app_state.list_state.selected() {
-                    if let Some(list) = app_state.lists.get_mut(app_state.current_list_index) {
-                        let mut pos = 0;
-                        let mut main_idx = 0;
-                        let mut sub_idx = 0;
-                        let mut is_sub = false;
-                        for (mi, item) in list.items.iter().enumerate() {
+            } else if let Some(visual_idx) = app_state.list_state.selected() {
+                if let Some(list) = app_state.lists.get_mut(app_state.current_list_index) {
+                    let mut pos = 0;
+                    let mut main_idx = 0;
+                    let mut sub_idx = 0;
+                    let mut is_sub = false;
+                    for (mi, item) in list.items.iter().enumerate() {
+                        if pos == visual_idx {
+                            main_idx = mi;
+                            is_sub = false;
+                            break;
+                        }
+                        pos += 1;
+                        for (si, _) in item.sub_items.iter().enumerate() {
                             if pos == visual_idx {
                                 main_idx = mi;
-                                is_sub = false;
+                                sub_idx = si;
+                                is_sub = true;
                                 break;
                             }
                             pos += 1;
-                            for (si, _) in item.sub_items.iter().enumerate() {
-                                if pos == visual_idx {
-                                    main_idx = mi;
-                                    sub_idx = si;
-                                    is_sub = true;
-                                    break;
-                                }
-                                pos += 1;
-                            }
-                            if is_sub {
-                                break;
-                            }
                         }
-                        if let Some(item) = list.items.get_mut(main_idx) {
-                            if is_sub {
-                                if let Some(sub) = item.sub_items.get_mut(sub_idx) {
-                                    sub.is_done = !sub.is_done;
-                                }
-                            } else if item.sub_items.is_empty() {
-                                item.is_done = !item.is_done;
-                            } else {
-                                let completed = item.sub_items.iter().filter(|s| s.is_done).count();
-                                let total = item.sub_items.len();
-                                if completed < total {
-                                    if let Some(sub) = item.sub_items.get_mut(completed) {
-                                        sub.is_done = true;
-                                    }
-                                } else if completed > 0 {
-                                    if let Some(sub) = item.sub_items.get_mut(completed - 1) {
-                                        sub.is_done = false;
-                                    }
-                                }
-                                let new_completed = item.sub_items.iter().filter(|s| s.is_done).count();
-                                item.is_done = new_completed == total;
+                        if is_sub {
+                            break;
+                        }
+                    }
+                    if let Some(item) = list.items.get_mut(main_idx) {
+                        if is_sub {
+                            if let Some(sub) = item.sub_items.get_mut(sub_idx) {
+                                sub.is_done = !sub.is_done;
                             }
+                        } else if item.sub_items.is_empty() {
+                            item.is_done = !item.is_done;
+                        } else {
+                            let completed = item.sub_items.iter().filter(|s| s.is_done).count();
+                            let total = item.sub_items.len();
+                            if completed < total {
+                                if let Some(sub) = item.sub_items.get_mut(completed) {
+                                    sub.is_done = true;
+                                }
+                            } else if completed > 0 {
+                                if let Some(sub) = item.sub_items.get_mut(completed - 1) {
+                                    sub.is_done = false;
+                                }
+                            }
+                            let new_completed = item.sub_items.iter().filter(|s| s.is_done).count();
+                            item.is_done = new_completed == total;
                         }
                     }
                 }
@@ -147,7 +151,9 @@ pub fn handle_key(key: KeyEvent, app_state: &mut Appstate) -> bool {
         }
 
         event::KeyCode::Char(char) => match char {
-            'q' => return true,
+            'q' => {
+                app_state.mode = AppMode::ConfirmExit;
+            }
             'i' => {
                 if app_state.active_panel == Panel::List {
                     app_state.is_add_new = true;
@@ -188,20 +194,65 @@ pub fn handle_key(key: KeyEvent, app_state: &mut Appstate) -> bool {
                                     is_done: false,
                                     description: "new subtask".to_string(),
                                     sub_items: Vec::new(),
+                                    item_type: ItemType::Task,
                                 });
                             }
                         }
                     }
                 }
             }
+            'h' => {
+                if app_state.active_panel == Panel::List {
+                    if let Some(list) = app_state.lists.get_mut(app_state.current_list_index) {
+                        list.items.push(TodoItem {
+                            is_done: false,
+                            description: "--- Header ---".to_string(),
+                            sub_items: Vec::new(),
+                            item_type: ItemType::Header,
+                        });
+                    }
+                }
+            }
+            'f' => {
+                if app_state.active_panel == Panel::NewList {
+                    if let Some(index) = app_state.lists_list_state.selected() {
+                        if let Some(list) = app_state.lists.get_mut(index) {
+                            list.list_type = match list.list_type {
+                                ListType::List => ListType::Folder,
+                                ListType::Folder => ListType::List,
+                            };
+                        }
+                    }
+                }
+            }
+            '-' => {
+                if app_state.active_panel == Panel::List {
+                    if let Some(list) = app_state.lists.get_mut(app_state.current_list_index) {
+                        list.items.push(TodoItem {
+                            is_done: false,
+                            description: String::new(),
+                            sub_items: Vec::new(),
+                            item_type: ItemType::Separator,
+                        });
+                    }
+                }
+            }
             'E' => {
                 app_state.is_add_new = true;
                 app_state.is_editing = true;
-                app_state.edit_target = EditTarget::Item;
                 app_state.input_value.clear();
                 app_state.cursor_position = 0;
 
-                if app_state.active_panel == Panel::List {
+                if app_state.active_panel == Panel::NewList {
+                    app_state.edit_target = EditTarget::ListName;
+                    if let Some(index) = app_state.lists_list_state.selected() {
+                        if let Some(list) = app_state.lists.get(index) {
+                            app_state.input_value = list.name.clone();
+                            app_state.cursor_position = app_state.input_value.len();
+                        }
+                    }
+                } else {
+                    app_state.edit_target = EditTarget::Item;
                     if let Some(visual_idx) = app_state.list_state.selected() {
                         if let Some(list) = app_state.lists.get(app_state.current_list_index) {
                             let mut pos = 0;
@@ -244,39 +295,67 @@ pub fn handle_key(key: KeyEvent, app_state: &mut Appstate) -> bool {
                 }
             }
             'd' => {
+                app_state.confirming_delete = true;
+            }
+            '/' => {
+                app_state.mode = AppMode::Search;
+                app_state.search_input_value.clear();
+                app_state.search_cursor_position = 0;
+            }
+            'v' => {
+                app_state.show_completed = !app_state.show_completed;
+            }
+            'u' => {
                 if app_state.active_panel == Panel::List {
                     if let Some(visual_idx) = app_state.list_state.selected() {
                         if let Some(list) = app_state.lists.get_mut(app_state.current_list_index) {
                             let mut pos = 0;
                             let mut main_idx = 0;
+                            let mut sub_idx = 0;
+                            let mut is_sub = false;
                             for (mi, item) in list.items.iter().enumerate() {
                                 if pos == visual_idx {
                                     main_idx = mi;
+                                    is_sub = false;
                                     break;
                                 }
                                 pos += 1;
-                                for _ in &item.sub_items {
+                                for (si, _) in item.sub_items.iter().enumerate() {
                                     if pos == visual_idx {
                                         main_idx = mi;
+                                        sub_idx = si;
+                                        is_sub = true;
                                         break;
                                     }
                                     pos += 1;
                                 }
+                                if is_sub { break; }
                             }
-                            list.items.remove(main_idx);
+                            if let Some(item) = list.items.get_mut(main_idx) {
+                                if is_sub {
+                                    if let Some(sub) = item.sub_items.get_mut(sub_idx) {
+                                        sub.is_done = false;
+                                    }
+                                    item.is_done = false;
+                                } else {
+                                    item.is_done = false;
+                                    for sub in item.sub_items.iter_mut() {
+                                        sub.is_done = false;
+                                    }
+                                }
+                            }
                         }
-                    }
-                } else if let Some(index) = app_state.lists_list_state.selected() {
-                    app_state.lists.remove(index);
-                    if app_state.current_list_index >= app_state.lists.len() && !app_state.lists.is_empty() {
-                        app_state.current_list_index = app_state.lists.len() - 1;
                     }
                 }
             }
             'g' => {
                 app_state.g_count += 1;
                 if app_state.g_count == 2 {
-                    app_state.list_state.select(Some(0));
+                    if app_state.active_panel == Panel::List {
+                        app_state.list_state.select(Some(0));
+                    } else if app_state.active_panel == Panel::NewList {
+                        app_state.lists_list_state.select(Some(0));
+                    }
                     app_state.g_count = 0;
                 }
             }
@@ -292,7 +371,7 @@ pub fn handle_key(key: KeyEvent, app_state: &mut Appstate) -> bool {
                             app_state.list_state.select(Some(count - 1));
                         }
                     }
-                } else if !app_state.lists.is_empty() {
+                } else if app_state.active_panel == Panel::NewList && !app_state.lists.is_empty() {
                     app_state.lists_list_state.select(Some(app_state.lists.len() - 1));
                 }
             }
@@ -477,6 +556,14 @@ pub fn handle_key(key: KeyEvent, app_state: &mut Appstate) -> bool {
                 app_state.g_count = 0;
             }
         },
+
+        event::KeyCode::Tab => {
+            app_state.active_panel = match app_state.active_panel {
+                Panel::List => Panel::NewList,
+                Panel::NewList => Panel::List,
+            };
+            app_state.g_count = 0;
+        }
 
         _ => {}
     }
