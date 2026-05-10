@@ -6,10 +6,10 @@ members = ["cargo:."]
 cargo-dist-version = "0.31.0"
 ci = "github"
 installers = ["homebrew"]
-# Standard targets that work on all GitHub accounts
 targets = ["aarch64-apple-darwin", "x86_64-apple-darwin", "x86_64-unknown-linux-gnu", "x86_64-pc-windows-msvc"]
 hosting = "github"
 
 [dist.homebrew]
-tap = "Yahddyyp/homebrew-rudo"
+# Setting tap to the same repo so permissions just work
+tap = "Yahddyyp/rudo"
 formula = "rudo"
