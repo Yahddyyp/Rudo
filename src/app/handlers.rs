@@ -1,8 +1,5 @@
 use super::state::{AppMode, Appstate, EditTarget, FormAction, ItemType, ListType, Panel, TodoItem};
-use ratatui::{
-    crossterm::event::{self, KeyEvent},
-    widgets::ListState,
-};
+use ratatui::crossterm::event::{self, KeyEvent};
 
 pub fn handle_add_new(key: KeyEvent, app_state: &mut Appstate) -> FormAction {
     match key.code {
@@ -538,7 +535,7 @@ pub fn handle_key(key: KeyEvent, app_state: &mut Appstate) -> bool {
                                 return false;
                             }
                             pos += 1;
-                            for (si, _) in item.sub_items.iter().enumerate() {
+                            for (_si, _) in item.sub_items.iter().enumerate() {
                                 if pos == current {
                                     app_state.list_state.select_previous();
                                     return false;

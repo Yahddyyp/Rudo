@@ -1,5 +1,5 @@
 use crate::app::state::{Appstate, ItemType, ListGroupType, ListType, Panel, TodoItem};
-use ratatui::layout::{Constraint, Direction, Layout, Rect};
+use ratatui::layout::Rect;
 use ratatui::prelude::{Alignment, Stylize};
 use ratatui::style::Style;
 use ratatui::text::{Line, Span, ToSpan};

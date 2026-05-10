@@ -3,18 +3,6 @@
 version = 4
 
 [[package]]
-name = "Rudo"
-version = "0.1.0"
-dependencies = [
- "clap",
- "color-eyre",
- "dirs",
- "ratatui",
- "serde",
- "serde_json",
-]
-
-[[package]]
 name = "addr2line"
 version = "0.25.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -655,6 +643,18 @@ dependencies = [
  "getrandom",
  "libredox",
  "thiserror",
+]
+
+[[package]]
+name = "rudo"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "color-eyre",
+ "dirs",
+ "ratatui",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]

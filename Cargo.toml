@@ -2,6 +2,12 @@
 name = "rudo"
 version = "0.1.0"
 edition = "2024"
+description = "A fast terminal todo manager with TUI and CLI modes"
+homepage = "https://github.com/Yahddyyp/Rudo"
+repository = "https://github.com/Yahddyyp/Rudo"
+license = "MIT"
+keywords = ["todo", "tui", "cli", "productivity", "terminal"]
+categories = ["command-line-utilities"]
 
 [dependencies]
 color-eyre = "0.6.3"
@@ -10,4 +16,9 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 dirs = "5.0"
 clap = { version = "4", features = ["derive"] }
+
+# The profile that 'dist' will build with
+[profile.dist]
+inherits = "release"
+lto = "thin"
 
