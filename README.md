@@ -1,4 +1,4 @@
-# rudo
+# Rudo
 
 A fast terminal todo list written in rust!
 
