@@ -10,12 +10,26 @@ With cargo:
 cargo install --git https://github.com/Yahddyyp/Rudo
 ```
 
-Or from source:
-
 ```bash
 git clone https://github.com/Yahddyyp/Rudo
 cd Rudo
 cargo install --path .
+```
+
+### Path Setup
+
+If the `rudo` command is not found after installation, ensure your cargo bin directory is in your PATH:
+
+**For Zsh / Bash:**
+Add this to your `~/.zshrc` or `~/.bashrc`:
+```bash
+export PATH="$HOME/.cargo/bin:$PATH"
+```
+
+**For Fish:**
+Add this to your `~/.config/fish/config.fish`:
+```fish
+fish_add_path $HOME/.cargo/bin
 ```
 
 ## Usage
