@@ -4,15 +4,18 @@ A fast terminal todo list written in rust!
 
 ## Install
 
+With cargo:
+
 ```bash
-brew tap Yahddyyp/rudo
-brew install rudo
+cargo install --git https://github.com/Yahddyyp/Rudo
 ```
 
-Or with cargo:
+Or from source:
 
 ```bash
-cargo install rudo
+git clone https://github.com/Yahddyyp/Rudo
+cd Rudo
+cargo install --path .
 ```
 
 ## Usage
@@ -39,7 +42,7 @@ rudo status           # completion stats
 | `-` | Add separator |
 | `E` | Edit selected |
 | `d` | Delete selected |
-| `u` | Uncheck item|
+| `u` | Uncheck item |
 | `Enter` | Toggle check |
 | `j/k` | Move cursor |
 | `Tab` | Switch panel |
