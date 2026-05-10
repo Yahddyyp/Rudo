@@ -34,6 +34,8 @@ fish_add_path $HOME/.cargo/bin
 
 ## Usage
 
+![image](assets/Image.png)
+
 ```bash
 rudo                  # open the TUI
 rudo list             # list tasks in the active list
