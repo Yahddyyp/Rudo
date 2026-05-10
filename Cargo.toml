@@ -1,6 +1,6 @@
 [package]
 name = "rudo"
-version = "0.1.4"
+version = "0.1.7"
 edition = "2024"
 description = "A fast terminal todo manager with TUI and CLI modes"
 homepage = "https://github.com/Yahddyyp/Rudo"
@@ -32,8 +32,7 @@ targets = ["aarch64-apple-darwin", "x86_64-apple-darwin", "x86_64-unknown-linux-
 hosting = "github"
 
 [workspace.metadata.dist.homebrew]
-tap = "Yahddyyp/rudo"
-formula = "rudo"
+# Minimal config: let dist derive formula name and path automatically
 
 [profile.dist]
 inherits = "release"
