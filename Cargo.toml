@@ -1,6 +1,6 @@
 [package]
 name = "rudo"
-version = "0.1.0"
+version = "0.1.4"
 edition = "2024"
 description = "A fast terminal todo manager with TUI and CLI modes"
 homepage = "https://github.com/Yahddyyp/Rudo"
@@ -17,8 +17,24 @@ serde_json = "1.0"
 dirs = "5.0"
 clap = { version = "4", features = ["derive"] }
 
-# The profile that 'dist' will build with
+[workspace]
+
+[workspace.metadata.dist]
+# The preferred dist version to use in CI (Cargo.toml SemVer syntax)
+cargo-dist-version = "0.31.0"
+# CI backends to support
+ci = "github"
+# The installers to generate for each app
+installers = ["homebrew"]
+# Target platforms to build apps for (Rust target-triple syntax)
+targets = ["aarch64-apple-darwin", "x86_64-apple-darwin", "x86_64-unknown-linux-gnu", "x86_64-pc-windows-msvc"]
+# Where to host releases
+hosting = "github"
+
+[workspace.metadata.dist.homebrew]
+tap = "Yahddyyp/rudo"
+formula = "rudo"
+
 [profile.dist]
 inherits = "release"
 lto = "thin"
-
