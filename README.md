@@ -10,6 +10,8 @@ With cargo:
 cargo install --git https://github.com/Yahddyyp/Rudo
 ```
 
+Or from source:
+
 ```bash
 git clone https://github.com/Yahddyyp/Rudo
 cd Rudo
